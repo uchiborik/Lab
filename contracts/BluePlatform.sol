@@ -6,7 +6,7 @@ import "./BlueToken.sol";
 contract BluePlatform is BlueToken{
     constructor() public{
     }
-    
+ 
     event NewTag(uint tagId, uint latitude, uint longitude); // イベントを定義
     
     // 構造体 {タグ情報}
@@ -16,20 +16,19 @@ contract BluePlatform is BlueToken{
     }
     
     // 構造体 {紛失物情報}
-  struct Footprint {
-    uint latitude;
-    uint longitude;
-    address sender;
-  } 
-  
-    // デバイスIDで紛失物情報を検索するため
-    // デバイスIDから提供された紛失情報へマッピングする
-    mapping(uint => Footprint[]) public footprints;
-    
+    struct Footprint {
+        uint latitude;
+        uint longitude;
+        address sender;
+    } 
+      
     Tag[] tags; // 登録されたタグのリスト
     
     mapping (uint => address) public tagToOwner; // タグの所有者
-    mapping (address => uint) ownerTagCount; // オーナー(ユーザアカウント)のタグ所有数
+    mapping (address => uint) ownerTagCount; //利用者のタグ所有数
+    
+    // {タグID=>紛失物情報}
+    mapping(uint => Footprint[]) public footprints;
     
     // タグを登録する
     function createTag(uint _latitude, uint _longitude) public {
@@ -43,7 +42,7 @@ contract BluePlatform is BlueToken{
     // 持ち主が
     // タグの位置情報を更新する
     // ユーザは常に位置情報を送信する
-    function changePostion(uint _tagId,uint _newlatitude, uint _newlongitude) external {
+    function updatePosition(uint _tagId,uint _newlatitude, uint _newlongitude) external {
         require(msg.sender == tagToOwner[_tagId]);
         tags[_tagId].latitude = _newlatitude;
         tags[_tagId].longitude = _newlongitude;
@@ -53,16 +52,16 @@ contract BluePlatform is BlueToken{
     function sendPosition(uint _tagId, uint _latitude, uint _longitude) public {
         require(msg.sender != tagToOwner[_tagId]); //タグの持ち主でないことを確認
         footprints[_tagId].push(Footprint({latitude: _latitude, longitude: _longitude, sender: msg.sender}));
-        _transferToken(0x20509da180Bab0330230acb031E666D8cE6F680d,msg.sender,1); // 提供者へ報酬を得る
+        _transferToken(0x9e000457f4141071ea78E8907BF23B8d0Df9a962,msg.sender,1); 
     }
     
      
     // 提供された最新の紛失物情報をタグの情報として登録する
-  function registerPostion(uint _tagId) public returns(bool) {
+  function registerPosition(uint _tagId) public returns(bool) {
         require(msg.sender == tagToOwner[_tagId]);
-        tags[_tagId].latitude = footprints[_tagId][footprints[_tagId].length - 1].latitude; //最新の緯度
-        tags[_tagId].longitude = footprints[_tagId][footprints[_tagId].length - 1].longitude; //最新の経度
-        _transferToken(msg.sender,footprints[_tagId][footprints[_tagId].length - 1].sender,10); // タグの持ち主は提供者へトークン報酬を払う
+        tags[_tagId].latitude = footprints[_tagId][footprints[_tagId].length - 1].latitude; 
+        tags[_tagId].longitude = footprints[_tagId][footprints[_tagId].length - 1].longitude; 
+        _transferToken(msg.sender,footprints[_tagId][footprints[_tagId].length - 1].sender,10); 
         return true;
   }
     

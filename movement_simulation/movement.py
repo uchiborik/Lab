@@ -1,151 +1,164 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.animation as animation
 import random
-import time
+import copy
 
-
-PARTICLE_NO = 1000 # 粒子数
-ITERATION = 200 # 最大ループ回数　感染者が０になると止まる
-MIN_X, MIN_Y = -100.0, -100.0 # 探索開始時の範囲最小値
+NumOfUsers = 50 # 利用者数(1から１００)
+ITERATION = 100 # 最大ループ回数　
+MIN_X, MIN_Y = 0.0, 0.0 # 探索開始時の範囲最小値
 MAX_X, MAX_Y = 100.0, 100.0 # 探索開始時の範囲最大値
-recovery=30 #一定時間経過したら治癒
-p=0.5 #0.03 #probability of infecion
-rc=100 #121 #169 #225　感染する範囲円の半径^2
+Range = 15 #通信範囲 (範囲内に利用者が入った場合、接触と判定する)
+RangeSquared = Range*Range
+ProbOfLoss=0.01 #紛失する確率
+MaxDisplacement = 4
 
-start = time.time()
+StepLog = []        # 履歴情報
 
-def plot_particle(sk,positions,elt,r,g,b):
-    #fig, ax = plt.subplots()
-    el_time = time.time()-start
-    fig, (ax1, ax2) = plt.subplots(1, 2, sharey=False,figsize=(8*2, 8))
+def initializeUsers(positions):
+  #初期位置グラフ出力
+  fig, ax0 = plt.subplots()
+  ax0.set_xlim([MIN_X,MAX_X])
+  ax0.set_ylim([MIN_Y,MAX_Y])
+  ax0.set_xlabel("x")
+  ax0.set_ylabel("y")
+  ax0.set_title("Initial Position (NumOfUsers:{})".format(NumOfUsers))
+  #初期位置設定
+  for i in range(0, NumOfUsers):
+    x = int(random.uniform(MIN_X, MAX_X))
+    y = int(random.uniform(MIN_Y, MAX_Y))
+    positions.append({"x": x, "y": y, "lost": 0, "communicated":0})
+    #散布図
+    plt.scatter(positions[i]["x"],positions[i]["y"],color="blue")
+  fig.savefig("/content/drive/MyDrive/Lab/img/InitialPositions/InitialPosition_NumOfUsers:{}.png".format(NumOfUsers))
+  #print(positions)
 
-    for j in range(0,PARTICLE_NO):
-        x=positions[j]["x"]
-        y=positions[j]["y"]
-        c=positions[j]["c"]
-        s = 5**2
-        ax1.scatter(x, y, s, c, marker="o")
-    ax1.set_xlim([MIN_X, MAX_X])
-    ax1.set_ylim([MIN_Y, MAX_Y])
-    ax1.set_xlabel("x")
-    ax1.set_ylabel("y")
-    ax1.set_title("{:.2f}:InfectionRate;{:.2f} %".format(el_time,(PARTICLE_NO-b[-1])/PARTICLE_NO*100))
+# 利用者の位置更新関数(更新のみする)　
+# UserPositionsの要素の構造
+#  ({int ,"x": int, "y": int, "lost": int,"communicated": int})
+# lost は一旦1になったらそのままにしてある
+# communicated は近接範囲に入った時だけ 1
 
-    ind = np.arange(len(elt))  # the x locations for the groups
-    width = 0.3       # the width of the bars
 
-    ax2.set_ylim([0, PARTICLE_NO])
-    ax2.set_title("{:.2f}:red_{} green_{} blue_{}".format(el_time,r[-1],g[-1],b[-1]))
-    rect1 = ax2.bar(ind, b,width, color="b")
-    rect2 = ax2.bar(ind+width, g, width, color="g") #, bottom=b)
-    rect3 = ax2.bar(ind+2*width, r,width, color="r") #, bottom=b)
-    plt.pause(0.1)
-    plt.savefig('./fig//fig{}_.png'.format(sk)) 
-    plt.close()
+def updatePosition(userPositions):
+  # 位置の更新（上書き）
+  for i in range(0, NumOfUsers):
+    x=userPositions[i]['x']
+    y=userPositions[i]['y']
+    vx = MaxDisplacement * random.uniform(-1, 1)
+    vy = MaxDisplacement * random.uniform(-1, 1)
+    new_x = x + vx
+    new_y = y + vy
+    new_x = min(new_x, MAX_X)
+    new_y = min(new_y, MAX_Y)
+    new_x = max(new_x, MIN_X)
+    new_y = max(new_y, MIN_Y)
+    userPositions[i]['x']  = int(new_x) #　int型にキャスト
+    userPositions[i]['y']  = int(new_y) #　int型にキャスト
 
-# 粒子の位置更新関数
-def update_position(positions,velocity):
-    x0 = []
-    y0 = []
-    for i in range(PARTICLE_NO):
-        c=positions[i]["c"]
-        t_time = positions[i]["t"]  #初期値０，感染は感染時時間
-        k_time = time.time()-start  #経過時間
-        s = positions[i]["flag"]    #感染なし０，感染：１
-        if s == 1 and c == "red":   #感染済な場合
-            if k_time-t_time>recovery:  #一定時間経過したら治癒
-                #print("inside",i,s,c,k_time-t_time)
-                c = "blue"
-                positions[i]["c"] = "green"
-                positions[i]["flag"] = 1   #ただし、感染履歴ありのまま
-        if c == "red":  #感染redなら位置情報取得
-            x0.append(positions[i]["x"])
-            y0.append(positions[i]["y"])
-            #print("4",i,s,c,t_time)
-    #print(x0,y0)   
-    position = []
-    for j in range(PARTICLE_NO):
-        x=positions[j]["x"]
-        y=positions[j]["y"]
-        c=positions[j]["c"]
-        s = positions[j]["flag"]
-        t_time = positions[j]["t"]
-        for k in range(len(x0)):
-            if (x-x0[k])**2+(y-y0[k])**2 < rc and random.uniform(0,1)<p:
-                if s ==0:
-                    c = "red"
-                    t_time = time.time()-start
-                    s = 1
-                    positions[j]["flag"]=s
-                else:
-                    continue
-        vx = velocity[j]["x"]+1.085*random.uniform(-1, 1) #係数が粒子の運動性の大きさ
-        vy = velocity[j]["y"]+1.085*random.uniform(-1, 1)
-        new_x = x + vx
-        new_y = y + vy
-        p_color = c
-        s=s
+def checkVicinity(userPositions):
+  # communicated のクリア
+  for i in range(0, NumOfUsers):
+    userPositions[i]["communicated"] = 0
+  #　近接判定を行う
+  for i in range(0, NumOfUsers):
+    xi=userPositions[i]['x']
+    yi=userPositions[i]['y']
+    ci=userPositions[i]["lost"]
 
-        position.append({"x": new_x, "y": new_y, "c": p_color, "t": t_time,"flag":s})
-        velocity.append({"x": vx, "y": vy})
+    for j in range(i+1, NumOfUsers):
+      xj=userPositions[j]['x']
+      yj=userPositions[j]['y']
+      cj=userPositions[j]["lost"]
 
-    return position, velocity, x0
+      dist2 = (xi-xj)**2 + (yi-yj)**2
+      if ( dist2 < RangeSquared ):
+        if ci == 1 and cj == 0:
+          userPositions[i]["lost"] = 1
+          userPositions[i]["communicated"] = 1
+          userPositions[j]["communicated"] = 1
+        elif cj == 1 and ci == 0:
+          userPositions[j]["lost"] = 1
+          userPositions[j]["communicated"] = 1
+          userPositions[i]["communicated"] = 1
 
-def count_brg(position):
-    r=0
-    g=0
-    b=0
-    for j in range(len(position)):
-        if position[j]["c"] == "red":
-            r += 1
-        elif position[j]["c"] == "green":
-            g += 1
-        else:
-            b += 1
-    return r,g,b        
+
+def updateLoss(userPositions):
+  # 一定の確率 ProbOfLoss で紛失させる
+  for i in range(0, NumOfUsers):
+      lost=userPositions[i]['lost']
+      # 手元にある場合(lost=0)：確率pで紛失する
+      if lost == 0:
+        if random.uniform(0,1) < ProbOfLoss:
+          userPositions[i]['lost']  = 1   
+
+
+def recordLog(step, userPositions):
+  global StepLog
+  StepLog.append(copy.deepcopy(userPositions))
+
+def outputPositions(userPositions):
+  for user in range(0, NumOfUsers):
+    print(" User:"+ str(user)+ ",")
+    print(userPositions[user])
+
+def outputLog(maxstep):
+  global StepLog
+  #ステップごとの全利用者の位置座標を出力
+  for step in range(0, maxstep):
+    print("Step:"+ str(step))
+    userPositions = StepLog[step]
+    outputPositions(userPositions)
+
+def drawGraph(maxstep):
+  fig, ax1 = plt.subplots()
+  ax1.set_xlim([MIN_X,MAX_X])
+  ax1.set_ylim([MIN_Y,MAX_Y])
+  ax1.set_xlabel("x")
+  ax1.set_ylabel("y")
+
+  for user in range(0, NumOfUsers):
+    xlist = []
+    ylist = []
+    for step in range(0, maxstep):
+      userPosition = StepLog[step][user]
+      x = userPosition["x"]
+      y = userPosition["y"]
+      lost = userPosition["lost"]
+      communicated = userPosition["communicated"]
+      color = ("blue", "red")[lost==1] # lost 状態だと赤色
+      marker = (".", "s")[communicated==1] # communicated した時は正方形のマーカー
+
+      xlist.append(x)
+      ylist.append(y)
+      if step == 0:
+        plt.text(x,y, str(user), fontsize=16) # ユーザ番号
+      else:
+        # マーカー
+        plt.plot(x,y,
+                color = color,
+                marker = marker)
+        
+    # 線を描く
+    plt.plot(xlist, ylist, marker=" ")
+
+  plt.show()
 
 def main():
-    # 時間計測開始
-    #start = time.time()
-    xy_min, xy_max = -32, 32
-    # 各粒子の初期位置, 速度, personal best, global best 及びsearch space設定
-    position = []
-    velocity = []  #速度は使えるように拡張
+  userPositions = []  #現時点のユーザ位置
 
-    # 初期位置, 初期速度
-    #position.append({"x": random.uniform(MIN_X, MAX_X), "y": random.uniform(MIN_Y, MAX_Y), "c": "red", "t":0, "flag":1})
-    position.append({"x": 0, "y": 0, "c": "red", "t":0, "flag":1}) #真ん中（0，0）に初期感染者を1人置く
-    velocity.append({"x": 0, "y": 0}) #感染者の初速度0としている
-    for i in range(0,10): #x方向に集落を10個並べる
-        for j in range(0,10): #xy方向に集落をメッシュ10で並べる
-            for k in range(0,10): #１集落辺り10個の感受性保持者を分布
-                s=k+j*10+i*100;
-                position.append({"x": 10+(-100+i*20)+random.uniform(MIN_X/100, MAX_X/100), "y":10+(-100+j*20)+ random.uniform(MIN_Y/100, MAX_Y/100), "c": "blue", "t": 0, "flag":0})
-                velocity.append({"x": 0, "y": 0})
-    print(len(position))
-    sk = 0
-    red=[]
-    green=[]
-    blue=[]
-    elapsed_time = []
-    while sk < ITERATION:
-        position,velocity, x0 = update_position(position,velocity) ######
-        r,g,b = count_brg(position)
-        red.append(r)
-        green.append(g)
-        blue.append(b)
-        el_time=time.time()-start
-        elapsed_time.append(el_time)
-        #print("{:.2f}:red_{} green_{} blue_{}".format(el_time,r,g,b))
-        plot_particle(sk,position,elapsed_time,red,green,blue)
-        if x0==[]:
-            break
-        sk += 1
+  initializeUsers(userPositions)
+  #outputPositions(userPositions)
+  for step in range(0,ITERATION):
+    updatePosition(userPositions) # 位置を更新
+    checkVicinity(userPositions)  # 近接をチェックして communicated を更新
+    updateLoss(userPositions)     # 紛失 lost を更新
+    recordLog(step, userPositions)      # 状態を記録
 
-    # 時間計測終了
-    process_time = time.time() - start
-    print("time:", process_time)
-
+  outputLog(ITERATION) # 記録した状態を出力
+  drawGraph(ITERATION)    
+    
 if __name__ == '__main__':
-    main()
+  main()   
+  
