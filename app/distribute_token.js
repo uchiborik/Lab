@@ -6,39 +6,40 @@ const contract = artifacts.require("BluePlatform");
 
 //アカウント10個
 const accounts = [
-    '0x9087D0EB87596432029481b1A6a89f0f9a3775cA',
-    '0x80EbAe671F4011B24Ca58fcb8A5c156b7c2CEbe9',
-    '0x7bf2e21252ef902D85029A03dc9A218fe0280Fa7',
-    '0x7e83fc0FaE36632B998ad00c8C1D48e63C79c61A',
-    '0x884AdfEdd35E476FFbC01782937B100f90b74379',
-    '0x9a1e7c949f7b75B330198D6cdB7a03Cdb39803d1',
-    '0x4C17DcF0e138E139a19262dC381522b51D6dF93E',
-    '0x9a9a4ca087256A2F9e134eCD022a4787da0384b4',
-    '0x6A7C3d8d2206734f30145361CFaa87f1F703af11',
-    '0x0f89e337061d16EE3f32b39c5C0591171a57B722'
+    '0xFBf6010CDd8464bF6D0520Ba32efB172fb577082',
+    '0x01613dC65510C9167EEfeCc1306d916Dc3C40574',
+    '0x829A4b012e80ee62cbf603f1c41917a1B067908f',
+    '0x4782C78C86024F5830C680fb67aaba14015e1190',
+    '0x4A758c88f7662e2806c65484093e2917c4D586C5',
+    '0xD2134c24E037d775f63639F51057D8A30836aa44',
+    '0xfC8a933FB4B21D23E5A2a3A7b25cb67C240F50D0',
+    '0x52ff7d1077A59F8745A82E409eda51756ada245b',
+    '0xD698ece00C819acB62e47A67d6219725D55Ad55d',
+    '0xC52e3f02c82C6d82DE0A7b59e34c516F28Fdd0D3'
   ];
 
 // 初期位置
-var initialPosition = [
-    [ 76 , 39 ]
+var initialPosition = 
+[
+    [ 6 , 82 ]
     ,
-    [ 28 , 14 ]
+    [ 18 , 63 ]
     ,
-    [ 72 , 82 ]
+    [ 85 , 53 ]
     ,
-    [ 22 , 61 ]
+    [ 81 , 85 ]
     ,
-    [ 96 , 64 ]
+    [ 10 , 57 ]
     ,
-    [ 82 , 85 ]
+    [ 60 , 87 ]
     ,
-    [ 84 , 4 ]
+    [ 54 , 6 ]
     ,
-    [ 61 , 79 ]
+    [ 10 , 12 ]
     ,
-    [ 40 , 88 ]
+    [ 74 , 21 ]
     ,
-    [ 3 , 96 ]
+    [ 68 , 44 ]
     ];
 
 const UserNumber = accounts.length;

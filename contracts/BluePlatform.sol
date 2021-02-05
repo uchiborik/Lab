@@ -29,7 +29,7 @@ contract BluePlatform is BlueToken{
         uint tagId = tags.length -1;
         tagToOwner[tagId] = msg.sender;
         ownerTagCount[msg.sender]++;
-        _transferToken(0xe5aea864FCc5E3D8859806eA16a7968AA83891e2,msg.sender,100); 
+        _transferToken(0x680efaC4bAC785B0aE298E8a5CAebC38bF33dc36,msg.sender,100); 
     }
     
     // 持ち主がタグの位置情報を更新する
@@ -43,7 +43,7 @@ contract BluePlatform is BlueToken{
     function sendPosition(uint _tagId, uint _latitude, uint _longitude) public {
         require(msg.sender != tagToOwner[_tagId]); //タグの持ち主でないことを確認
         footprints[_tagId].push(Footprint({latitude: _latitude, longitude: _longitude, sender: msg.sender}));
-        _transferToken(0xe5aea864FCc5E3D8859806eA16a7968AA83891e2,msg.sender,5); 
+        _transferToken(0x680efaC4bAC785B0aE298E8a5CAebC38bF33dc36,msg.sender,5); 
     }
     
      
