@@ -1,8 +1,8 @@
 node_modules
-truffle-config.js
 memo.txt
 logs_ganache
 build
 movement_simulation/.python-version
 Lab.code-workspace
 prototype.xd
+*.txt
