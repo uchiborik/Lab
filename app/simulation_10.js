@@ -56,7 +56,6 @@ module.exports = function(callback){
         //利用者シミュレーション
         for (let step=0;step<MaxStep;step++) {
             getindex.fill(0);
-            sendcount = 0;
             console.log(step);
             for (let user=0;user<UserNumber;user++){
 

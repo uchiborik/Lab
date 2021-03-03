@@ -29,7 +29,7 @@ contract BluePlatform is BlueToken{
         uint tagId = tags.length -1;
         tagToOwner[tagId] = msg.sender;
         ownerTagCount[msg.sender]++;
-        _transferToken(0x4ea47F392589C6872335AACd493308b999Be5959,msg.sender,100); 
+        _transferToken(0x96F303893bC765e1e5d5c9dbC160f262474d6319,msg.sender,100000000); 
     }
     
     // 持ち主がタグの位置情報を更新する
@@ -43,7 +43,7 @@ contract BluePlatform is BlueToken{
     function sendPosition(uint _tagId, uint _latitude, uint _longitude) public {
         require(msg.sender != tagToOwner[_tagId]); //タグの持ち主でないことを確認
         footprints[_tagId].push(Footprint({latitude: _latitude, longitude: _longitude, sender: msg.sender}));
-        _transferToken(0x4ea47F392589C6872335AACd493308b999Be5959,msg.sender,5); 
+        _transferToken(0x96F303893bC765e1e5d5c9dbC160f262474d6319,msg.sender,1); 
     }
     
      
@@ -52,7 +52,7 @@ contract BluePlatform is BlueToken{
         require(msg.sender == tagToOwner[_tagId]);
         tags[_tagId].latitude = footprints[_tagId][footprints[_tagId].length - 1].latitude; 
         tags[_tagId].longitude = footprints[_tagId][footprints[_tagId].length - 1].longitude; 
-        _transferToken(msg.sender,footprints[_tagId][footprints[_tagId].length - 1].sender,10); 
+        _transferToken(msg.sender,footprints[_tagId][footprints[_tagId].length - 1].sender,2); 
         return true;
   }
     
